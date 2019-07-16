@@ -14,7 +14,8 @@ import (
 	"time"
 )
 
-const urlPattern = "https://purpletrac.polestar-testing.com/api/v1/registration?api_key=%s&username=%s"
+const urlPattern = "https://purpletrac.polestar-testing.com/api/v1/" +
+	"registration?api_key=%s&username=%s"
 
 func gatherIMOS() ([]string, error) {
 	content, err := ioutil.ReadFile("imos")
@@ -117,7 +118,8 @@ func main() {
 		go func() {
 			for {
 				time.Sleep(
-					time.Duration(conf.minTime+rand.Intn(conf.maxTime)) * time.Second,
+					time.Duration(conf.minTime+rand.Intn(conf.maxTime)) *
+						time.Second,
 				)
 				registerAShip(sigs, url, pickAShip(imos, numImos))
 			}
