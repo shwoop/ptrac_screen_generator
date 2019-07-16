@@ -42,10 +42,14 @@ func registerAShip(sigs chan int, url, ship string) {
 		fmt.Println(fmt.Sprintf("Error posting request to %s: %s", url, err))
 		sigs <- 1
 	}
-	resp.Body.Close()
+	defer resp.Body.Close()
 	if resp.StatusCode != 201 {
-		fmt.Println("Invalid response: " + resp.Status)
-		sigs <- 1
+		fmt.Printf(
+			"Invalid response: %s\n%s",
+			resp.Status,
+			resp.Body,
+		)
+		return
 	}
 
 	fmt.Println("Registered ship " + ship)
