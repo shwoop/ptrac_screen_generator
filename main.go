@@ -117,13 +117,22 @@ func main() {
 		url.QueryEscape(conf.username),
 	)
 	sigs := make(chan int, 1)
+	var randomPause func() int
+	if maxSleepTime := conf.maxTime - conf.minTime; maxSleepTime > 0 {
+		randomPause = func() int {
+			return rand.Intn(maxSleepTime)
+		}
+	} else {
+		randomPause = func() int {
+			return 0
+		}
+	}
 
 	for i := 0; i < conf.workers; i++ {
 		go func() {
 			for {
 				time.Sleep(
-					time.Duration(conf.minTime+rand.Intn(conf.maxTime)) *
-						time.Second,
+					time.Duration(conf.minTime+randomPause()) * time.Second,
 				)
 				registerAShip(sigs, url, pickAShip(imos, numImos))
 			}
