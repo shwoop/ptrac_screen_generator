@@ -17,13 +17,17 @@ import (
 const urlPattern = "https://purpletrac.polestar-testing.com/api/v1/" +
 	"registration?api_key=%s&username=%s"
 
-func gatherIMOS() ([]string, error) {
+func gatherIMOS() ([]string, int, error) {
 	content, err := ioutil.ReadFile("imos")
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	imos := strings.Split(string(content), "\n")
-	return imos, nil
+	numImos := len(imos)
+	if numImos == 0 {
+		return nil, 0, fmt.Errorf("Found no IMOS")
+	}
+	return imos, numImos, nil
 }
 
 func pickAShip(imos []string, numImos int) string {
@@ -100,14 +104,9 @@ func parseArguments() Config {
 func main() {
 	conf := parseArguments()
 
-	imos, err := gatherIMOS()
+	imos, numImos, err := gatherIMOS()
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
-	}
-	numImos := len(imos)
-	if numImos == 0 {
-		fmt.Println("Found no IMOS")
 		os.Exit(1)
 	}
 
@@ -116,7 +115,7 @@ func main() {
 		url.QueryEscape(conf.apiKey),
 		url.QueryEscape(conf.username),
 	)
-	sigs := make(chan int, 1)
+
 	var randomPause func() int
 	if maxSleepTime := conf.maxTime - conf.minTime; maxSleepTime > 0 {
 		randomPause = func() int {
@@ -128,6 +127,7 @@ func main() {
 		}
 	}
 
+	sigs := make(chan int, 1)
 	for i := 0; i < conf.workers; i++ {
 		go func() {
 			for {
